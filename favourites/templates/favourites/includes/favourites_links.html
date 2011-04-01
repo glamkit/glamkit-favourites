@@ -1,0 +1,39 @@
+{% load favourites %}
+
+{% if not anonymous %}
+
+{% if include_media %}
+<script type="text/javascript">
+$(document).ready(function(){
+    favLinks = [];
+    fav_management_links_binding();
+    {% if not visible %}
+        $(".favourites_links").hide();
+    {% endif %}
+});
+</script>
+{% endif %}
+
+<span class="pseudolink favourites_management"><h4>My Favourites</h4></span>
+<ul class="favourites_links" >
+    {% for dat in collections_in %}
+    <li class="favourite-links-item">
+        {{ dat.collection.title }}&nbsp;<a href="{%url favourites.collection_details collection_id=dat.collection.id %}">&raquo;</a><br/><a class="remove_from_collection fav_link" 
+            href="{% url favourites.remove_from_collection collection_id=dat.collection.id, relation_id=dat.relation.id %}">- Remove from this collection</a>
+    </li>
+    {% endfor %}
+    
+    {% for dat in collections_out %}
+    <li class="favourite-links-item">
+        {{ dat.collection.title }}&nbsp;<a href="{%url favourites.collection_details collection_id=dat.collection.id %}">&raquo;</a><br/><a class="add_to_collection fav_link" href="{% url favourites.add_to_collection model_name,item.pk,dat.collection.id %}">+ Add to this collection</a>
+    </li>
+    {% endfor %}
+    
+    <li class="favourite-links-item">
+        <a class="add_to_new_collection fav_link" href="{% url favourites.add_to_new_collection model_name,item.pk %}">
+            Add to a new collection
+        </a>
+    </li>
+        
+</ul>
+{% endif %}

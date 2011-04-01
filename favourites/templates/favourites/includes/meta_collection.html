@@ -1,0 +1,4 @@
+<h3 class="favourites-collection-title">{{ collection.title }}</h3>
+{% if collection.description %}
+<p>{{ collection.description|default:""|linebreaksbr }}</p>
+{% endif %}

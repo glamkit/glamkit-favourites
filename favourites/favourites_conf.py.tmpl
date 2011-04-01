@@ -1,0 +1,19 @@
+# keys - url shortcuts. used by views offered by this application
+# items - actual models.
+FAVOURITABLE_MODELS = {"painting": "myapp.Painting", 
+                        "book": "myapp.Book"}
+
+# name is sort of self-describing
+# %s stands for owner first_name or username
+DEFAULT_COLLECTION_NAME = "Default collection for %s"
+NEW_COLLECTION_NAME = "Yet another collection for %s"
+
+
+# number of items to show in the favourites collection preview
+PREVIEW_ITEMS_NO = 5
+
+# templates for the template paths (lol)
+# formatting with % {"app_label": <app_label>, "module_name": <module_name>}
+# will be applied to the strings below
+FAVOURITE_ITEM_TEMPLATE = "favourites/includes/%(app_label)s/%(module_name)s.html" # used to show an item on the favourites page
+FAVOURITE_ITEM_TEMPLATE_PREVIEW = "favourites/includes/%(app_label)s/%(module_name)s_preview.html" # used to show an item in the favourites preview bar

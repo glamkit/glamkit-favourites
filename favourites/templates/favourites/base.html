@@ -1,0 +1,27 @@
+{% extends "favourites/html_base.html" %}
+
+{% load myapp_includes %}
+{% load favourites %}
+
+{% block head %}
+    <title>{% block title %}{% endblock %}</title>
+{% comment %}  
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
+{% endcomment %}
+    <script type="text/javascript" src="/media/js/jquery-huge.js"></script>
+    <script type="text/javascript" src="/media/js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/media/js/jquery.form.js"></script>
+    
+    <script type="text/javascript" src="/media/favourites/js/main.js"></script>
+    
+    <link rel="stylesheet" type="text/css" href="/media/favourites/css/main.css" />
+{% endblock %}
+
+{% block body %}
+    {% myapp_nav %}
+    <div id="sidebar">
+        {% favourites_collections_list %}
+    </div>
+    
+    {% block content %}{% endblock %}
+{% endblock %}

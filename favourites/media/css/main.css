@@ -1,0 +1,20 @@
+.pseudolink{
+    color: blue;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.details{
+    color: #999999;
+    text-decoration: italic;
+}
+
+#items li{
+    margin-bottom: 10px;
+}
+
+.dragholder{
+    background-color: black;
+    width: 20px;
+    height: 20px;
+}

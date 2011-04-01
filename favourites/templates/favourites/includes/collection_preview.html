@@ -1,0 +1,5 @@
+{% load favourites %}
+
+{% for item in items %}
+    {% favourites_preview_collection_item item %}
+{% endfor %}

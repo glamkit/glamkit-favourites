@@ -1,0 +1,13 @@
+{% extends "favourites/base.html" %}
+
+{% block content %}
+<h1>Are you really sure?</h1>
+
+<p>That you want to remove a collection '{{ collection }}'?</p>
+
+<form method="POST" action=".">
+    <input type="submit" value="Yes" />
+    <input type="submit" value="Cancel" />
+</form>
+
+{% endblock %}

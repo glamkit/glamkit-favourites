@@ -1,0 +1,14 @@
+{% load favourites %}
+
+{% ifnotequal user collection.owner %}
+    <p class="owner">Collection created by {{ collection.owner }}</p>
+{% endifnotequal %}
+
+<h3>{{ collection.title }}</h3>
+<p>{{ collection.description }}</p>
+
+<ul class="items">
+    {% for item in collection %}
+        <li>{% render_item item %}</li>
+    {% endfor %}
+</ul>

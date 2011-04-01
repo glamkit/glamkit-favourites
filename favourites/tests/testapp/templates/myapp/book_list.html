@@ -1,0 +1,24 @@
+{% extends "favourites/base.html" %}
+{% load favourites %}
+{% load myapp_includes %}
+{% load imagemagick %}
+
+
+{% block content %}
+    {% favourites_collection %}
+
+    <h1>Book list</h1>
+
+    <ul>
+        {% for book in book_list %}
+            <li>
+                <a href="{{ book.get_absolute_url }}">{{ book.title }}</a>
+                <div><img src="/media/{{ book.image.name|convert:"-resize 200x200^ -gravity center -extent 200x200 -strip -quality 70" }}" /></div>
+                <div class="favourites_links_container" id="favourites_{{ book.id }}">
+                    {% favourites_links book %}
+                </div>
+            </li>
+            
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "favourites/base.html" %}
+
+{% block content %}
+<form action="." method="POST">
+<table>
+    {{ form }}
+</table>
+<input type="submit" value="Yes" />
+<input type="submit" value="Cancel" />
+</form>
+{% endblock %}

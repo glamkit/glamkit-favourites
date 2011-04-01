@@ -1,0 +1,21 @@
+{% extends "favourites/base.html" %}
+{% load favourites %}
+{% load myapp_includes %}
+{% load imagemagick %}
+
+{% block content %}
+    {% favourites_collection %}
+    
+    <h1>Painting list</h1>
+
+    <ul>
+        {% for painting in painting_list %}
+            <li><a href="{{ painting.get_absolute_url }}">{{ painting.title }}</a>
+            <div><img src="/media/{{ painting.image.name|convert:"-resize 200x200^ -gravity center -extent 200x200 -strip -quality 70" }}" /></div>
+            <div class="favourites_links_container">
+                {% favourites_links painting %}
+            </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% load imagemagick %}
+
+<h1>Book - {{ item.title }}</h1>
+<p>{{ item.description }}</p>
+
+<img src="/media/{{ item.image.name|convert:"-resize 400x400^ -gravity center -extent 400x400 -strip -quality 70" }}" />

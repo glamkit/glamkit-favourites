@@ -1,0 +1,5 @@
+<div id="nav">
+    <a href="{% url myapp.book_list %}">Book list</a> | <a href="{% url myapp.painting_list %}">Painting list</a> |
+    {% if user.is_authenticated %} <a href="/admin/logout/">Log out</a> {% else %} <a href="/admin/">Log in</a> {% endif %}
+    
+</div>

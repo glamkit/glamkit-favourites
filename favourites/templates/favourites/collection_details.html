@@ -1,0 +1,112 @@
+{% extends "favourites/base.html" %}
+{% load favourites %}
+
+{% block content %}
+    {% if editable %}
+    <script type="text/javascript">
+    $(document).ready(function(){
+        // instantiate fancy forms
+        fancyForms = [];
+        $.each($("form"), function(i, val){fancyForms.push(new fancyForm($(val)))});
+        
+        // and links which remove stuff
+        removeLinks = [];
+        $.each($(".remove_link"), function(i, val){removeLinks.push(new removeLink($(val)))});  
+        
+        var FROM_POS = null; // extremelly evil way to share data
+        
+        // dragholders are visible only if js is enabled
+        $(".dragholder").css({display: "block"}); 
+        
+        $("#items").sortable({
+            start: function(event, ui){
+                var arr =  $(this).sortable("toArray");
+                FROM_POS = arr.length - arr.indexOf(ui.item.attr("id")) - 1;
+            },
+            update: function(event, ui){                
+                var arr =  $(this).sortable("toArray");
+                var to = arr.length - arr.indexOf(ui.item.attr("id")) - 1;
+                var relation_id = ui.item.attr("relation_id");
+  
+                $.post("{% url favourites.swap_items collection_id=collection.id %}",
+                    {"is_ajax": true, "relation_id": relation_id, "to": to, "from": FROM_POS}, function(data){
+                        if (data.status !== "OK"){
+                            alert("Request to rearrange favourites failed");   
+                        }
+                }, "json");
+            },
+            handle: ".dragholder",
+            opacity: 0.8
+        });
+    });
+    </script>
+    {% endif %}
+    
+    {% if editable %}
+    <div class="meta_container">
+            <div class="details">
+                {% include "favourites/includes/meta_collection.html" %}
+            </div>
+                    <form method="POST" action="{% url favourites.edit_collection collection.id %}">
+                        <div class="form_container"></div>
+                        <span class="are_you_sure" style="display:none">Are you sure you want to delete this collection</span>
+                        <div class="submit_buttons_remove" style="display:none">
+                            <input type='submit' value='Yes' /><input type='button' value='Cancel' class='cancel' />
+                        </div>
+                        <div class="submit_buttons_edit" style="display:none">
+                            <input type='submit' value='Save' /><input type='button' value='Cancel' class='cancel' />
+                        </div>
+                    </form>
+                    
+                    <span class="edit_bar">
+                        <a class="edit_button" href="{% url favourites.edit_collection collection.id %}">Edit</a> | 
+                        <a class="remove_link" 
+                            href="{% url favourites.remove_collection collection.id %}">
+                            Remove collection
+                        </a>
+                        
+                    </span>
+        </div>
+    {% endif %}
+    
+    <ul id="items">
+        {% for item in collection %}
+            <li class="item_container" id="favourites_{{ forloop.revcounter0 }}" relation_id="{{ item.favourites_meta_info.id }}">
+                {% if editable %}<div class="dragholder" style="display:none"></div>{% endif %}
+                
+                {% favourites_render_item item %}
+                <div class="meta_container">
+                    <div class="details">
+                        {% include "favourites/includes/meta.html" %}
+                    </div>
+                        {% if editable %}
+                            <form method="POST" action="{% url favourites.edit_item collection_id=collection.id, relation_id=item.favourites_meta_info.id %}">
+                                <div class="form_container"></div>
+                                <span class="are_you_sure" style="display:none">Are you sure you want to delete this item from the favourites?</span>
+                                <div class="submit_buttons_edit" style="display:none">
+                                    <input type='submit' value='Save' /><input type='button' value='Cancel' class='cancel' />
+                                </div>
+                                <div class="submit_buttons_remove" style="display:none">
+                                    <input type='submit' value='Yes' /><input type='button' value='Cancel' class='cancel' />
+                                </div>
+                            </form>
+                            
+                            <span class="edit_bar">
+                                <a class="edit_button"
+                                    href="{% url favourites.edit_item collection_id=collection.id, relation_id=item.favourites_meta_info.id %}">
+                                    Edit
+                                </a>
+                                | 
+                                <a class="remove_link" 
+                                    href="{% url favourites.remove_from_collection collection_id=collection.id, relation_id=item.favourites_meta_info.id%}">
+                                    Remove from the favourites
+                                </a>
+                                
+                            </span>
+                        {% endif %}
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

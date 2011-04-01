@@ -1,0 +1,7 @@
+<ul class="collections">
+    {% for collection in collections %}
+        {% ifnotequal collection.id current_collection.id %}
+            <li class="collection"><a href="{% url favourites.collection_details collection.pk %}">{{ collection.title }}</a></li>
+        {% endifnotequal %}
+    {% endfor %}
+</ul>

@@ -1,0 +1,11 @@
+{% extends "favourites/base.html" %}
+{% load myapp_includes %}
+{% load favourites %}
+
+{% block content %}
+    {% favourites_collection %}    
+    
+    {% favourites_render_item book %}
+    
+    {% favourites_links book %}
+{% endblock %}
