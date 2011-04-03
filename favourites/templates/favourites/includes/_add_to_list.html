@@ -1,10 +1,10 @@
 {% load favourites %}
-{% get_favourites_lists owner as lists %}
+{% lists_editable_by user as lists %}
 {% if lists %}
-	<form method="post" action="{% url favourites.create_item owner.username %}" >
+	<form method="post" action="{% url favourites.create_item %}" >
 		<input type="hidden" name="content_type_id" value="{% get_content_type_id item %}" />
 		<input type="hidden" name="object_id" value="{{ item.pk }}" />
-		<select class="span-1 last" name="list">
+		<select class="span-1 last" name="list_id">
 			<option value="" selected="selected">-----</option>
 			{% for list in lists %}
 			<option value='{{ list.pk }}'>{{ list }}</option>

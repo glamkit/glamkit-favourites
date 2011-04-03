@@ -8,77 +8,20 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         
-        # Adding model 'FavouritesList'
-        db.create_table('favourites_favouriteslist', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=200, db_index=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('is_public', self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True)),
-            ('creator', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-        ))
-        db.send_create_signal('favourites', ['FavouritesList'])
+        # Adding field 'FavouritesList.modified'
+        db.add_column('favourites_favouriteslist', 'modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 4, 3, 20, 44, 54, 321035), db_index=True), keep_default=False)
 
-        # Adding M2M table for field owners on 'FavouritesList'
-        db.create_table('favourites_favouriteslist_owners', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('favouriteslist', models.ForeignKey(orm['favourites.favouriteslist'], null=False)),
-            ('user', models.ForeignKey(orm['auth.user'], null=False))
-        ))
-        db.create_unique('favourites_favouriteslist_owners', ['favouriteslist_id', 'user_id'])
-
-        # Adding M2M table for field editors on 'FavouritesList'
-        db.create_table('favourites_favouriteslist_editors', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('favouriteslist', models.ForeignKey(orm['favourites.favouriteslist'], null=False)),
-            ('user', models.ForeignKey(orm['auth.user'], null=False))
-        ))
-        db.create_unique('favourites_favouriteslist_editors', ['favouriteslist_id', 'user_id'])
-
-        # Adding M2M table for field viewers on 'FavouritesList'
-        db.create_table('favourites_favouriteslist_viewers', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('favouriteslist', models.ForeignKey(orm['favourites.favouriteslist'], null=False)),
-            ('user', models.ForeignKey(orm['auth.user'], null=False))
-        ))
-        db.create_unique('favourites_favouriteslist_viewers', ['favouriteslist_id', 'user_id'])
-
-        # Adding model 'FavouriteItem'
-        db.create_table('favourites_favouriteitem', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('collection', self.gf('django.db.models.fields.related.ForeignKey')(related_name='items', to=orm['favourites.FavouritesList'])),
-            ('added_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('order', self.gf('django.db.models.fields.FloatField')(default=0, db_index=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, db_index=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'])),
-            ('object_id', self.gf('django.db.models.fields.CharField')(max_length=255)),
-        ))
-        db.send_create_signal('favourites', ['FavouriteItem'])
-
-        # Adding unique constraint on 'FavouriteItem', fields ['content_type', 'object_id', 'collection']
-        db.create_unique('favourites_favouriteitem', ['content_type_id', 'object_id', 'collection_id'])
+        # Adding index on 'FavouritesList', fields ['created']
+        db.create_index('favourites_favouriteslist', ['created'])
 
 
     def backwards(self, orm):
         
-        # Removing unique constraint on 'FavouriteItem', fields ['content_type', 'object_id', 'collection']
-        db.delete_unique('favourites_favouriteitem', ['content_type_id', 'object_id', 'collection_id'])
+        # Removing index on 'FavouritesList', fields ['created']
+        db.delete_index('favourites_favouriteslist', ['created'])
 
-        # Deleting model 'FavouritesList'
-        db.delete_table('favourites_favouriteslist')
-
-        # Removing M2M table for field owners on 'FavouritesList'
-        db.delete_table('favourites_favouriteslist_owners')
-
-        # Removing M2M table for field editors on 'FavouritesList'
-        db.delete_table('favourites_favouriteslist_editors')
-
-        # Removing M2M table for field viewers on 'FavouritesList'
-        db.delete_table('favourites_favouriteslist_viewers')
-
-        # Deleting model 'FavouriteItem'
-        db.delete_table('favourites_favouriteitem')
+        # Deleting field 'FavouritesList.modified'
+        db.delete_column('favourites_favouriteslist', 'modified')
 
 
     models = {
@@ -130,13 +73,14 @@ class Migration(SchemaMigration):
             'order': ('django.db.models.fields.FloatField', [], {'default': '0', 'db_index': 'True'})
         },
         'favourites.favouriteslist': {
-            'Meta': {'ordering': "['-created']", 'unique_together': '()', 'object_name': 'FavouritesList'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'Meta': {'ordering': "['-modified']", 'unique_together': '()', 'object_name': 'FavouritesList'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'db_index': 'True'}),
             'creator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'editors': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'editable_lists'", 'blank': 'True', 'to': "orm['auth.User']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_public': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
             'owners': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'owned_lists'", 'blank': 'True', 'to': "orm['auth.User']"}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200', 'db_index': 'True'}),
             'viewers': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'viewable_lists'", 'blank': 'True', 'to': "orm['auth.User']"})

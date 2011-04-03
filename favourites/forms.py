@@ -8,11 +8,15 @@ class FavouritesListForm(forms.ModelForm):
     
     class Meta:
         model = FavouritesList
-        fields = ['title', 'description', 'is_public']
+        fields = [
+            'title',
+            'description',
+            # 'is_public',
+        ]
 
-class FavouriteItemForm(forms.ModelForm):
-    def as_ul(self):
-        return u"<ul>" + super(FavouriteItemForm, self).as_ul() + u"</ul>"
-    
-    class Meta:
-        model = FavouriteItem
+# class FavouriteItemForm(forms.ModelForm):
+#     def as_ul(self):
+#         return u"<ul>" + super(FavouriteItemForm, self).as_ul() + u"</ul>"
+#     
+#     class Meta:
+#         model = FavouriteItem

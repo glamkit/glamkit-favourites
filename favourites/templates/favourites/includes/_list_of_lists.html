@@ -1,0 +1,5 @@
+<ul class="favourites">
+	{% for l in lists %}
+		<li{% if l == list %} class="selected"{% endif %}><a href="{% url favourites.list l.pk %}">{{ l }}&nbsp;<span class="count">({{ l.items.count }})</span></li></li>
+	{% endfor %}
+</ul>

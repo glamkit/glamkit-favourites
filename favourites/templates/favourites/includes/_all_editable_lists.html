@@ -1,0 +1,9 @@
+{% load favourites %}
+{% lists_editable_by user as lists %}
+{% permissions_on_lists_owned_by user as permissions %}
+{% if lists %}
+	{% include "favourites/includes/_list_of_lists.html" %}
+	{% if permissions.can_add_list %}<p class="action"><a href="{% url favourites.create_list user.username %}">add another list&hellip;</a></p>{% endif %}
+{% else %}
+	<p>{{ user }} has no lists.{% if permissions.can_add_list %} <a href="{% url favourites.create_list user.username %}">Add one?</a>{% endif %}</p>
+{% endif %}

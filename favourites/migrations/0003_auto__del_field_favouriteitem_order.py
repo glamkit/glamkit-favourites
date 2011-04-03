@@ -8,14 +8,14 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         
-        # Deleting field 'FavouritesList.default'
-        db.delete_column('favourites_favouriteslist', 'default')
+        # Deleting field 'FavouriteItem.order'
+        db.delete_column('favourites_favouriteitem', 'order')
 
 
     def backwards(self, orm):
         
-        # Adding field 'FavouritesList.default'
-        db.add_column('favourites_favouriteslist', 'default', self.gf('django.db.models.fields.BooleanField')(default=False), keep_default=False)
+        # Adding field 'FavouriteItem.order'
+        db.add_column('favourites_favouriteitem', 'order', self.gf('django.db.models.fields.FloatField')(default=0, db_index=True), keep_default=False)
 
 
     models = {
@@ -56,23 +56,27 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         'favourites.favouriteitem': {
-            'Meta': {'ordering': "['order']", 'unique_together': "(('content_type', 'object_id', 'collection'),)", 'object_name': 'FavouriteItem'},
+            'Meta': {'ordering': "['-created']", 'unique_together': "(('content_type', 'object_id', 'collection'),)", 'object_name': 'FavouriteItem'},
+            'added_by': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'collection': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'items'", 'to': "orm['favourites.FavouritesList']"}),
             'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'db_index': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'object_id': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'order': ('django.db.models.fields.FloatField', [], {'default': '0', 'db_index': 'True'})
+            'object_id': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
         'favourites.favouriteslist': {
-            'Meta': {'ordering': "['-created']", 'unique_together': '()', 'object_name': 'FavouritesList'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'Meta': {'ordering': "['-modified']", 'unique_together': '()', 'object_name': 'FavouritesList'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'db_index': 'True'}),
+            'creator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'editors': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'editable_lists'", 'blank': 'True', 'to': "orm['auth.User']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_public': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+            'is_public': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
+            'owners': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'owned_lists'", 'blank': 'True', 'to': "orm['auth.User']"}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200', 'db_index': 'True'}),
+            'viewers': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'viewable_lists'", 'blank': 'True', 'to': "orm['auth.User']"})
         }
     }
 

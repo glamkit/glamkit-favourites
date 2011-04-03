@@ -12,5 +12,5 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
         for user in User.objects.all():
-            if not user.favouriteslist_set.count():
+            if not user.owned_lists.count():
                 _create_default_collection(None, user, True)
