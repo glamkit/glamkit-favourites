@@ -4,7 +4,7 @@
 <ul>
 	{% for list_item in list %}
 		{% with list_item.item as item %}
-		<li><a href="{{ item.get_absolute_url }}">{{ item }}</a>{% if list_permissions.can_delete %}&nbsp;<span class="action">(<a href="{% url favourites.delete_item list.pk list_item.pk %}" onclick="return confirm('Are you sure you wish to remove this item?');">remove</a>)</span>{% endif %}</li>
+		<li><a href="{{ item.get_absolute_url }}">{{ item }}</a>{% if list_permissions.can_delete %}&nbsp;<span class="action">(<a href="{% url favourites.delete_item list.pk list_item.pk %}" onclick="return confirm('Are you sure you wish to remove this item?');">remove item</a>)</span>{% endif %}</li>
 		{% endwith %}
 	{% empty %}
 		<li>This list is empty.</li>

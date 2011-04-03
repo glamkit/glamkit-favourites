@@ -4,7 +4,9 @@
 {% permissions_on_list list as list_permissions %}
 
 <h1>{{ list.title }}</h1>
-<p>created by <a href="{% url favourites.lists list.creator.username %}">{{ list.creator }}</a></p>
+<p>{% if list.is_public %}a public list {% endif %}created by <a href="{% url favourites.lists list.creator.username %}">{{ list.creator }}</a></p>
+{{ list.description|linebreaks }}
+
 {% if list_permissions.can_edit %}<p><a href="{% url favourites.edit_list list.pk %}">Edit this list</a></p>{% endif %}
 {% if list_permissions.can_delete %}<p><a href="{% url favourites.delete_list list.pk %}" onclick="return confirm('Are you sure you wish to remove this list?');">Remove this list</a></p>{% endif %}
 {% include 'favourites/includes/_list.html' %}

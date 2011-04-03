@@ -1,5 +1,5 @@
 <ul class="favourites">
 	{% for l in lists %}
-		<li{% if l == list %} class="selected"{% endif %}><a href="{% url favourites.list l.pk %}">{{ l }}{% if item in l %}&nbsp;✔{% endif %}&nbsp;<span class="count">({{ l.items.count }})</span></a></li>
+		<li{% if l == list %} class="selected"{% endif %}><a href="{% url favourites.list l.pk %}">{{ l }}{% if item in l %}&nbsp;✔{% endif %}&nbsp;<span class="count">({{ l.items.count }})</span></a>{% if l.is_public %} &ndash; public list{% endif %}</li>
 	{% endfor %}
 </ul>
