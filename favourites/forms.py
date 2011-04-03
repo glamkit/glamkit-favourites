@@ -1,18 +1,18 @@
 from django import forms
 
-from favourites.models import Collection, Relation
+from favourites.models import FavouritesList, FavouriteItem
 
-class CollectionForm(forms.ModelForm):
+class FavouritesListForm(forms.ModelForm):
     def as_ul(self):
-        return u"<ul>" + super(CollectionForm, self).as_ul() + u"</ul>"
+        return u"<ul>" + super(FavouritesListForm, self).as_ul() + u"</ul>"
     
     class Meta:
-        model = Collection
+        model = FavouritesList
         fields = ['title', 'description', 'is_public']
 
-class RelationForm(forms.ModelForm):
+class FavouriteItemForm(forms.ModelForm):
     def as_ul(self):
-        return u"<ul>" + super(RelationForm, self).as_ul() + u"</ul>"
+        return u"<ul>" + super(FavouriteItemForm, self).as_ul() + u"</ul>"
     
     class Meta:
-        model = Relation
+        model = FavouriteItem

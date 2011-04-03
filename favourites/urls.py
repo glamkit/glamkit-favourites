@@ -1,13 +1,15 @@
 from django.conf.urls.defaults import *
 
-# that's how we define an item
-# possible model_names are defined in favourites_conf.py
-urlpatterns = patterns('',
-    (r'^(?P<model_name>\w+)/(?P<item_pk>\d+)/', include('favourites.urls_items')),
-    (r'^collection/(?P<collection_id>\d+)/', include('favourites.urls_collections')),
-)
+urlpatterns = patterns('favourites.views',
+    url(r'^$', 'my_lists', name='favourites.my_lists'),
+    url(r'^(?P<username>\w+)/$', 'favourites_lists', name='favourites.lists'),
+    url(r'^(?P<username>\w+)/(?P<list_pk>\d+)/$', 'favourites_list', name='favourites.list'), #username is ignored in URL
 
-urlpatterns += patterns('favourites.views',
-    url(r'^$', 'collections_index', name='favourites.collections_index'),
-    url(r'^permission_denied/$', 'permission_denied', name='favourites.permission_denied')
+    url(r'^(?P<username>\w+)/create/$', 'create_favourites_list', name='favourites.create_list'),
+    url(r'^(?P<username>\w+)/create_item/$', 'create_favourites_item', name='favourites.create_item'), #other params are passed in POST
+
+    url(r'^(?P<list_pk>\d+)/edit/$', 'edit_favourites_list', name='favourites.edit_list'),
+    url(r'^(?P<list_pk>\d+)/delete/$', 'delete_favourites_list', name='favourites.delete_list'),
+
+    url(r'^(?P<list_pk>\d+)/(?P<item_pk>\d+)/delete/$', 'delete_favourites_item', name='favourites.delete_item'),
 )

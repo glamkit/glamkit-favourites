@@ -1,3 +1,0 @@
-{% load imagemagick %}
-
-<a href="{{ item.get_absolute_url }}"><img src="/media/{{ item.image.name|convert:"-resize 200x200^ -gravity center -extent 200x200 -strip -quality 70" }}" /></a>

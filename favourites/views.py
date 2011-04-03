@@ -1,204 +1,133 @@
 from django.core.urlresolvers import reverse
-from django.http import Http404, HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
-from django.template.loader import render_to_string
-from django.template import Template, Context
-from django.db.models.expressions import F
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404, render_to_response
+from django.template import RequestContext
+from models import FavouritesList, FavouriteItem
+from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 
-from ixc_common.decorators import render_to, resolve_or_404
-from ixc_common.shortcuts import JSONResponse
-
-from utils import resolve_object_or_404, can_modify_collection, can_be_ajax
-from models import Collection, CollectionException, Relation
-from forms import CollectionForm, RelationForm
-
-"""
-NOTE: decorator @can_modify_collection
-    alter the function arguments;
-
-after it is applied,
-collection _is_ the actual Collection instance
-
-other NOTE: 
-
-Most of the views can act both as a normal views and as AJAX ones
-non-javascript views functionality may not be ready at this stage
-(GET requests ignored, templates missing/incorrect, etc.)
-
-
-"""
-@render_to('favourites/permission_denied.html')
-def permission_denied(request):
-    return {}
-
-@render_to('favourites/public_collection_details.html')
-def public_collection_details(request, collection):
-    """
-    View the public collection
-    """
-    return locals()
-   
-@render_to('favourites/collection_details.html')
 @login_required
-def collections_index(request):
+def my_lists(request):
     """
-    Show the default collection 
+    Redirect to my lists page (need a login to find out which user I am).
     """
-    if request.user.is_anonymous():
-        return Http404()
+    return HttpResponseRedirect(reverse('favourites.lists', args=(request.user.username, )))
+    
+def favourites_lists(request, username):
+    """
+    GET:
+    Show the user's lists.
+    Else 404.
+    """
+    user = get_object_or_404(User, username=username)
+    if user == request.user:
+        lists = user.favouriteslist_set.all()
+    else:
+        lists = user.favouriteslist_set.filter(is_public=True)
+
+    context = RequestContext(request)
+    context['lists'] = lists
+    context['owner'] = user
+
+    return render_to_response('favourites/user_lists.html', context)
+
+def favourites_list(request, username, list_pk):
+    """
+    GET:
+    Show the given list (if allowed).
+    """
+    
+    lst = get_object_or_404(FavouritesList, pk=list_pk)
+    if lst.owner != request.user and not lst.is_public:
+        raise Http404
         
-    return {"collection": request.user.collection_set.get(default=True), "editable": True}
+    context = RequestContext(request)
+    context['list'] = lst
     
-@render_to('favourites/collection_details.html')
-@resolve_or_404(Collection, pk_arg="collection_id", instance_arg="collection")
-def collection_details(request, collection):
-    if collection.owner != request.user:
-        if not collection.is_public:
-            return HttpResponseRedirect(reverse("favourites.permission_denied"))
-        return public_collection_details(request, collection)
+    return render_to_response('favourites/user_list.html', context)
+
+def create_favourites_list(request, username):
+    """
+    POST:
+    create an empty list (that can hold anything).
+    Redirects to referrer, (or list) if no referrer.
+    """
+    user = get_object_or_404(User, username=username)
+
+    if user != request.user:
+        return HttpResponseForbidden()
+    lst = FavouritesList.objects.create(owner=user)
     
-    editable = True
-    
-    return locals()
-    
-@render_to('favourites/remove_collection.html')
-@can_be_ajax
-@can_modify_collection
-def remove_collection(request, collection, is_ajax):
-    if request.method == "POST":
-        if 'cancel' in request.POST:
-            return HttpResponseRedirect(reverse("favourites.collection_details", args=[collection.pk]))
-        collection.delete()        
-        url = reverse("favourites.collections_index")
-        if is_ajax:
-            return JSONResponse({"action": "redirect", "url": url})
-        return HttpResponseRedirect(url)
-    else:
-        return locals()     
-    
-@render_to('favourites/edit_collection.html')
-@can_be_ajax
-@can_modify_collection
-def edit_collection(request, collection, is_ajax):
-    form = CollectionForm
-    if request.method == "POST":
-        form = form(request.POST, instance=collection)
-        if is_ajax:
-            if not form.is_valid():
-                return JSONResponse({"action": "show_errors", "form": form.as_ul()})
-            else:
-                form.save()
-                return JSONResponse({"details": render_to_string("favourites/includes/meta_collection.html", locals())})
-        else:
-            if not form.is_valid():
-                return locals()
-            else:
-                if not 'cancel' in request.POST:
-                    form.save()
-                return HttpResponseRedirect(reverse("favourites.collection_details", args=[collection.pk]))
-    form = form(instance=collection)
-    if is_ajax:
-        return JSONResponse({"action": "render_form", "form": form.as_ul()})
-    else:
-        return locals()
-    
-@render_to('favourites/edit_item.html')
-@can_be_ajax
-@can_modify_collection
-@resolve_or_404(Relation, pk_arg="relation_id", instance_arg="relation")
-def edit_item(request, collection, relation, is_ajax):
-    form = RelationForm
-    if request.method == "POST":
-        form = form(request.POST, instance=relation)
-        if is_ajax:
-            if not form.is_valid():
-                return JSONResponse({"action": "show_errors", "form": form.as_ul()})
-            else:
-                form.save()
-                item = {"favourites_meta_info": relation}
-                return JSONResponse({"details": render_to_string("favourites/includes/meta.html", locals())})
-        else:
-            if not form.is_valid():
-                return locals()
-            if not 'cancel' in request.POST:
-                form.save()
-            return HttpResponseRedirect(reverse("favourites.collection_details", args=[collection.pk]))
-            
-    form = form(instance=relation)
-    if is_ajax:
-        return JSONResponse({"action": "render_form", "form": form.as_ul()})
-    else:
-        return locals()
-    
-@can_modify_collection
-@can_be_ajax
-def swap_items(request, collection, is_ajax):
+    messages.add_message(request, messages.SUCCESS, '\'%s\' was created successfully.' % lst.title)
+
     try:
-        from_ = int(request.REQUEST.get("from"))
-        to = int(request.REQUEST.get("to"))
-        relation_id = int(request.REQUEST.get("relation_id"))
-        moved_r = Relation.objects.get(pk=relation_id)
-        nearby_r = Relation.objects.filter(collection=collection).order_by('importance')[to]
-                
-        if to > from_:
-            Relation.objects.filter(collection=collection).filter(importance__gt=nearby_r.importance).update(importance=F('importance') + 1)
-            moved_r.importance = nearby_r.importance + 1
-            moved_r.save()
-        else:
-            Relation.objects.filter(collection=collection).filter(importance__lt=nearby_r.importance).update(importance=F('importance') - 1)
-            moved_r.importance = nearby_r.importance - 1
-            moved_r.save()
-            
-        return JSONResponse({"status": "OK"})
-    except (KeyError, ValueError, Relation.DoesNotExist):
-        raise Http404()
-    
-   
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    except KeyError:
+        return HttpResponseRedirect(lst.get_absolute_url())
 
-_links_template = Template("{% load favourites %}{% favourites_links item %}")
-def _show_links(item, user):
-    c = Context({"item": item, "favourites_media_showed": True, "user": user, "visible": True})
-    return _links_template.render(c)
-
-@render_to('favourites/add_to_new_collection.html')
-@can_be_ajax
 @login_required
-def add_to_new_collection(request, model_name, item_pk, is_ajax):
-    item = resolve_object_or_404(model_name, item_pk)
-    try:
-        collection = Collection.objects.create_from(item, owner=request.user)
-        url = reverse("favourites.collection_details", args=[collection.pk])
-        if request.method == "POST" and is_ajax:
-            return JSONResponse({"status": "OK", "action": "redirect", "url": url})   
-        else:
-            return HttpResponseRedirect(url)
-    except (CollectionException):
-        raise Http404()
+def create_favourites_item(request, username):
+    """
+    POST:
+    add an item to a list. If list is unspecified, create a new list.
+    """
+    user = get_object_or_404(User, username=username)
 
-@render_to('favourites/add_to_collection.html')
-@can_be_ajax
-@can_modify_collection
-def add_to_collection(request, collection, model_name, item_pk, is_ajax):
-    item = resolve_object_or_404(model_name, item_pk)
-    try:
-        collection.add_item(item)
-        
-        if request.method == "POST" and is_ajax:
-            return JSONResponse({"status": "OK", "html": _show_links(item, request.user)})
-        else:
-            return HttpResponseRedirect(reverse("favourites.collection_details", args=[collection.pk]))
-            
-    except (CollectionException):
-        raise Http404()
+    if user != request.user:
+        return HttpResponseForbidden()
 
-@render_to('favourites/remove_from_collection.html')
-@can_be_ajax
-@can_modify_collection
-@resolve_or_404(Relation, pk_arg="relation_id", instance_arg="relation")
-def remove_from_collection(request, collection, relation, is_ajax):  
-    relation.delete() 
+    content_type_id = int(request.POST['content_type_id'])
+    object_id = int(request.POST['object_id'])
     
-    if is_ajax and request.method == "POST":
-        return JSONResponse({"status": "OK", "html": _show_links(relation.get_item(), request.user)})
+    item = get_object_or_404(ContentType.objects.get_for_id(content_type_id).model_class(), id=object_id)
+    
+    try:
+        list_id = int(request.POST.get('list'))
+    except ValueError:
+        list_id = None
+    
+    if list_id is None:
+        messages.add_message(request, messages.ERROR, 'Please choose a list to add to.')
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        
+    if list_id < 0:
+        lst = FavouritesList.objects.create_from_item(owner=user, item=item)
+        messages.add_message(request, messages.SUCCESS, '\'%s\' was created, and \'%s\' was added to it.' % (lst, item))
     else:
-        return HttpResponseRedirect(reverse("favourites.collection_details", args=[collection.pk]))
+        lst = get_object_or_404(FavouritesList, owner=user, pk=list_id)
+        lst.add_item(item=item)
+        messages.add_message(request, messages.SUCCESS, '\'%s\' was added to \'%s\'.' % (item, lst))
+  
+
+    try:
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    except KeyError:
+        return HttpResponseRedirect(lst.get_absolute_url())
+
+@login_required
+def delete_favourites_item(request, list_pk, item_pk):
+    item = get_object_or_404(FavouriteItem, collection__id=list_pk, pk=item_pk)
+    lst = item.collection
+    if lst.owner != request.user:
+        return HttpResponseForbidden()
+
+    s = unicode(item.item)
+    item.delete()
+    messages.add_message(request, messages.SUCCESS, '\'%s\' was removed from \'%s\'.' % (s, lst))
+    return HttpResponseRedirect(lst.get_absolute_url())
+    
+
+        
+@login_required
+def edit_favourites_list(request, list_pk):
+    pass
+
+@login_required
+def delete_favourites_list(request, list_pk):
+    lst = FavouritesList.objects.get(id=list_pk)
+    if lst.owner == request.user:
+        lst.delete()
+    messages.add_message(request, messages.SUCCESS, '\'%s\' was deleted successfully.' % (lst,))
+    return HttpResponseRedirect(reverse('favourites.my_lists'))

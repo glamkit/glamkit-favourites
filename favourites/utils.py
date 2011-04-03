@@ -25,14 +25,15 @@ def get_shortcut(item):
     """
     return shortcut2model()["%s.%s" % (item._meta.app_label, item.__class__.__name__)]
 
-def resolve_object_or_404(model_label, item_pk):
-    model = get_model(*settings.FAVOURITABLE_MODELS.get(model_label, None).split(".", 1))
-    if model is None:
-        raise Http404
-    try:
-        return model.objects.get(pk=item_pk)
-    except model.DoesNotExist:
-        raise Http404
+# def resolve_object_or_404(model_label, item_pk):
+#     #TODO: should be in model, surely
+#     model = get_model(*settings.FAVOURITABLE_MODELS.get(model_label, None).split(".", 1))
+#     if model is None:
+#         raise Http404
+#     try:
+#         return model.objects.get(pk=item_pk)
+#     except model.DoesNotExist:
+#         raise Http404
 
 """
 x this decorator checks whether the user has the permission to modify the collection
@@ -46,8 +47,8 @@ def can_modify_collection(func):
     def wrapper(request, *args, **kw):
         assert 'collection_id' in kw, "Function has to accept 'collection_id' as a keyword argument"
         try:
-            collection = models.Collection.objects.get(pk=int(kw.pop('collection_id')))
-        except (models.Collection.DoesNotExist, ValueError):
+            collection = models.FavouritesList.objects.get(pk=int(kw.pop('collection_id')))
+        except (models.FavouritesList.DoesNotExist, ValueError):
             raise Http404()
         if not request.user == collection.owner:
             return HttpResponseRedirect(reverse('favourites.permission_denied'))
@@ -65,7 +66,7 @@ def times_favourited(item):
     """
     @returns: int - how many times item was favourited <=> to how many collections the item was added
     """
-    return models.Collection.objects.containing(item).count()
+    return models.FavouritesList.objects.containing(item).count()
     
     
 def users_favourited(item):
