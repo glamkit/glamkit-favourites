@@ -97,8 +97,8 @@ class FavouritesListManager(models.Manager):
         return self.visible_to(current_user).filter(id__in=[x.id for x in editable_qs])
         
 class FavouritesList(models.Model):    
-    created = models.DateTimeField(default=datetime.datetime.now, editable=False, db_index=True)
-    modified = models.DateTimeField(editable=False, db_index=True)
+    created = models.DateTimeField(default=datetime.datetime.now, db_index=True)
+    modified = models.DateTimeField(db_index=True)
    
     title = models.CharField(max_length=200, db_index=True)
     description = models.TextField(blank=True, null=True)
@@ -262,6 +262,9 @@ class FavouritesList(models.Model):
         Get the queryset of items
         """
         return self.items.all()
+    
+    def count(self):
+        return self._get_qs().count()
         
     def __iter__(self):
         for item in self._get_qs():
@@ -323,7 +326,7 @@ class FavouriteItem(models.Model):
     
     added_by = models.ForeignKey(User) #useful for multi-party lists
     
-    created = models.DateTimeField(default=datetime.datetime.now, editable=False, db_index=True)
+    created = models.DateTimeField(default=datetime.datetime.now, db_index=True)
     description = models.TextField(blank=True, null=True)
     
     content_type = models.ForeignKey(ContentType, editable=False)
