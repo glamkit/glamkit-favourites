@@ -2,10 +2,13 @@
 
 {% block content %}
 <h1>{{ owner }}&rsquo;s lists</h1>
-{% include 'favourites/includes/_lists_as_owner.html' %}
+{% with owner as user %}
+	{% include 'favourites/includes/_lists_as_owner.html' %}
+{% endwith %}
 
 <h1>{{ owner }} also edits</h1>
-{% include 'favourites/includes/_lists_as_editor.html' %}
-
+{% with owner as user %}
+	{% include 'favourites/includes/_lists_as_editor.html' %}
+{% endwith %}
 
 {% endblock %}

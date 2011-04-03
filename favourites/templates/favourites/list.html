@@ -10,7 +10,7 @@
 {% include 'favourites/includes/_list.html' %}
 
 <h2>{{ list.creator }}&rsquo;s lists</h2>
-{% with list.creator as owner %}
+{% with list.creator as user %}
 	{% include 'favourites/includes/_lists_as_owner.html' %}
 {% endwith %}
 

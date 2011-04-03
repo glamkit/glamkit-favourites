@@ -7,6 +7,7 @@ from django.template import RequestContext
 from models import FavouritesList, FavouriteItem
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
+from forms import FavouritesListForm
 
 @login_required
 def my_lists(request):
@@ -120,7 +121,22 @@ def delete_favourites_item(request, list_pk, item_pk):
         
 @login_required
 def edit_favourites_list(request, list_pk):
-    pass
+    lst = get_object_or_404(FavouritesList, pk=list_pk)
+    if not lst.can_user_edit(request.user):
+        raise Http404
+    
+    if request.POST:
+        form = FavouritesListForm(request.POST, instance=lst)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(lst.get_absolute_url())
+    else:        
+        form = FavouritesListForm(instance = lst)
+    
+    context = RequestContext(request)
+    context['form'] = form
+    context['list'] = lst
+    return render_to_response("favourites/edit_list.html", context)
 
 @login_required
 def delete_favourites_list(request, list_pk):

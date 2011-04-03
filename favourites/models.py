@@ -54,12 +54,18 @@ class FavouritesListManager(models.Manager):
         """
         Returns lists owned by a given user
         """
+        if user.is_anonymous():
+            return self.none()
+        
         return self.filter(owners=user)
 
     def edited_by(self, user):
         """
         Returns lists edited by a given user
         """
+        if user.is_anonymous():
+            return self.none()
+
         return self.filter(editors=user)
         
     def visible_to(self, user):
@@ -71,11 +77,14 @@ class FavouritesListManager(models.Manager):
         * The list is public
         * I have change permission in admin.
         """
+        if user.is_anonymous():
+            return self.filter(is_public = True)
+        
         if user.has_perm('favourites.change_favouriteslist'):
             return self.all()
         
-        return self.filter(owners=user) | self.filter(editors=user) | self.filter(viewers=user) | \
-            self.filter(is_public = True)
+        return self.filter(owners=user) | self.filter(editors=user) | self.filter(viewers=user)
+            
         
     def owned_by_visible_to(self, owner, current_user):
         return self.owned_by(owner) & self.visible_to(current_user)
@@ -87,60 +96,7 @@ class FavouritesListManager(models.Manager):
         editable_qs = (self.owned_by(owner) | self.edited_by(owner))
         return self.visible_to(current_user).filter(id__in=[x.id for x in editable_qs])
         
-class FavouritesList(models.Model):
-    """    
-    # Setting settings first:
-    >>> testing.load_dummy_app('favourites.tests.myapp')
-    >>> from myapp.models import Book, Painting, Movie
-    >>> favouritable_models.model_list = [Book, Painting]
-    
-    >>> u = User.objects.create(username='test')
-    >>> c = FavouritesList.objects.create(owner=u, description='book collection')
-    >>> book = Book.objects.create(title='awesome book')
-    'add_item' is a syntax sugar for adding items to the collection
-    It is the same as FavouriteItem.objects.create(collection=c, ...etc)
-    >>> c.add_item(book)
-    >>> painting = Painting.objects.create(title='awesome painting')
-    >>> c.add_item(painting)
-    Traceback (most recent call last):
-        ...
-    FavouritesListException: Adding an item of non-allowed type to the collection
-    
-    # FavouritesList manager has some syntactic sugar methods
-    >>> treasure_island = Book.objects.create(title='Treasure island')
-    >>> c = FavouritesList.objects.create_from(owner=u, item=treasure_island, description='awesome collection')
-    >>> c.items.all()
-    [<<Book: 'Treasure island'> for <FavouritesList: 'awesome collection'>>]
-    
-    # Custom manager method to get all collections containing a particular item
-    >>> qs = FavouritesList.objects.containing(empire_v)
-    >>> len(qs) == 1 and qs[0] == c1
-    True
-    
-    # FavouritesList class defines custom __iter__ and __ methods
-    >>> harry_potter = Book.objects.create(title='Harry Potter')
-    >>> c1.add_item(harry_potter)
-    >>> do_NOT_read_me = Book.objects.create(title='Twilight')
-    >>> do_NOT_read_me in c1
-    False
-    >>> harry_potter in c1
-    True
-    >>> for obj in c1:
-    ...    print obj
-    <Book: 'Empire V'>
-    <Book: 'Harry Potter'>
-    
-    # some more syntactic sugar
-    >>> from favourites.utils import times_favourited, users_favourited
-    >>> u1 = User.objects.create(username='cheshire')
-    >>> c3 = FavouritesList.objects.create_from(empire_v, owner=u1)
-    >>> times_favourited(empire_v)
-    2
-    >>> sorted([u.username for u in users_favourited(empire_v)])
-    ['cheshire', 'test']
-    >>> testing.cleanup()
-    """
-    
+class FavouritesList(models.Model):    
     created = models.DateTimeField(default=datetime.datetime.now, editable=False, db_index=True)
     modified = models.DateTimeField(editable=False, db_index=True)
    
@@ -169,6 +125,9 @@ class FavouritesList(models.Model):
         * I am the other user
         * I have add permission in admin
         """
+        if user.is_anonymous():
+            return False
+            
         return user == other_user or \
             user.has_perm("favourites.add_favouriteslist")
     
@@ -190,8 +149,10 @@ class FavouritesList(models.Model):
         * The list is public
         * I have change permission in admin.
         """
+        if user.is_anonymous():
+            return self.is_public
+
         return \
-            self.is_public or \
             user in self.owners.all() or \
             user in self.editors.all() or \
             user in self.viewers.all() or \

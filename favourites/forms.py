@@ -11,7 +11,7 @@ class FavouritesListForm(forms.ModelForm):
         fields = [
             'title',
             'description',
-            # 'is_public',
+            'is_public',
         ]
 
 # class FavouriteItemForm(forms.ModelForm):
