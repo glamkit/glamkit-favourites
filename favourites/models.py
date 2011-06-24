@@ -6,8 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
-from ixc_common.decorators import post_save_handler
-from ixc_common import testing
+from convenient.decorators import post_save_handler
 from django.contrib.contenttypes import generic
 
 
