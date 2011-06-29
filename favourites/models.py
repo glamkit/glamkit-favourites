@@ -42,13 +42,15 @@ class FavouritesListManager(models.Manager):
         @returns: QS of collections containing the given item
         """
         
-        return self.model.objects.filter(favouriteitem__content_type=ContentType.objects.get_for_model(item), favouriteitem__object_id=item.pk)
-        
+        collections = self.model.items.related.model.objects.filter(content_type=ContentType.objects.get_for_model(item), object_id=item.pk).values_list(('collection'), flat=True)
+        return self.filter(id__in=collections)
+                
     def containing_item_and_visible_to(self, item, user):
         """
         @returns: QS of lists containing the given item and visible to a given user
         """
-        raise NotImplemented
+        collections = self.model.items.related.model.objects.filter(content_type=ContentType.objects.get_for_model(item), object_id=item.pk).values_list(('collection'), flat=True)
+        return self.visible_to(user).filter(id__in=collections)
 
     def owned_by(self, user):
         """
@@ -83,8 +85,7 @@ class FavouritesListManager(models.Manager):
         if user.has_perm('favourites.change_favouriteslist'):
             return self.all()
         
-        return self.filter(owners=user) | self.filter(editors=user) | self.filter(viewers=user)
-            
+        return self.filter(owners=user) | self.filter(editors=user) | self.filter(viewers=user) | self.filter(is_public = True)
         
     def owned_by_visible_to(self, owner, current_user):
         return self.owned_by(owner) & self.visible_to(current_user)

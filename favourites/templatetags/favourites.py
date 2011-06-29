@@ -23,7 +23,7 @@ def do_lists_owned_by_visible_to(parser, token):
     try:
         tag_name, owner, _as, context_name = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError(u"use '%s owner as context_name'" % token.contents.split()[0])
+        raise template.TemplateSyntaxError(u"use {%% %s owner as context_name %%}" % token.contents.split()[0])
     return FavouritesListsNode(owner=owner, context_name=context_name, qs_func=FavouritesList.objects.owned_by_visible_to)
 register.tag('lists_owned_by', do_lists_owned_by_visible_to)
 
@@ -45,6 +45,31 @@ def do_lists_editable_by(parser, token):
         raise template.TemplateSyntaxError(u"use '%s owner as context_name'" % token.contents.split()[0])
     return FavouritesListsNode(owner=owner, context_name=context_name, qs_func=FavouritesList.objects.editable_by_visible_to)
 register.tag('lists_editable_by', do_lists_editable_by)
+
+###
+
+class PublicFavouritesListsNode(template.Node):
+    def __init__(self, obj, context_name, qs_func):
+        self.obj = template.Variable(obj)
+        self.context_name = context_name
+        self.qs_func = qs_func
+
+    def render(self, context):
+        try:
+            obj = self.obj.resolve(context)
+            current_user = context['request'].user
+            context[self.context_name] = self.qs_func(item=obj, user=current_user)
+        except template.VariableDoesNotExist:
+            pass
+        return ''
+ 
+def do_public_lists(parser, token):
+    try:
+        tag_name, _containing, obj, _as, context_name = token.split_contents()
+    except ValueError:
+        raise template.TemplateSyntaxError(u"use {%% %s containing object as context_name %%}" % token.contents.split()[0])
+    return PublicFavouritesListsNode(obj=obj, context_name=context_name, qs_func=FavouritesList.objects.containing_item_and_visible_to)
+register.tag('public_lists', do_public_lists)
 
 
 ########
@@ -74,6 +99,7 @@ register.tag('permissions_on_lists_owned_by', do_permissions_on_lists_owned_by)
 #########
 ########
 
+# What is going on here, with repeated class name?
 class ListPermissionsNode(template.Node):
     def __init__(self, lst, context_name):
         self.lst = template.Variable(lst)
