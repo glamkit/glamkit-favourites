@@ -1,7 +1,0 @@
-{% load favourites %}
-{% lists_edited_by user as lists %}
-{% if lists %}
-	{% include "favourites/include/_list_of_lists.html"
-{% else %}
-	<p>No lists</p>
-{% endif %}

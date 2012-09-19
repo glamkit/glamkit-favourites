@@ -1,8 +1,0 @@
-{% load favourites %}
-{% public_lists containing work.proxy as lists %}
-{% permissions_on_lists_owned_by user as permissions %}
-{% if lists %}
-	{% include "favourites/includes/_list_of_lists.html" %}
-{% else %}
-	<p>No lists yet.{% if permissions.can_add_list %} <a href="{% url favourites.create_list user.username %}">Add one?</a>{% endif %}</p>
-{% endif %}

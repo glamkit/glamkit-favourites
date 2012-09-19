@@ -1,4 +1,0 @@
-Primary Authors of glamkit-favourites:
-
-    * George Karpenkov <george@interaction.net.au>
-    * Greg Turner <greg@interaction.net.au>

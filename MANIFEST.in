@@ -1,2 +1,0 @@
-recursive-include favourites/templates *
-recursive-include favourites/locale *
